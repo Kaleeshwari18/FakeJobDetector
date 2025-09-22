@@ -7,22 +7,18 @@ import re
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-# --- Load model & vectorizer ---
 model = joblib.load("models/fake_job_model.pkl")
 vectorizer = joblib.load("models/vectorizer.pkl")
 
-# --- Load dataset for visualization ---
 df = pd.read_csv("data/fake_job_postings.csv")
 y = df['fraudulent']
 
-# --- Title ---
 st.title("🕵️ Fake Job Detection System")
 st.markdown("""
 Detect fake job postings using machine learning.
 You can enter a job description manually or upload a CSV file for bulk predictions.
 """)
 
-# --- Text cleaning function ---
 def clean_text(text):
     if not isinstance(text, str):
         text = ""
@@ -30,7 +26,6 @@ def clean_text(text):
     text = re.sub(r"[^a-zA-Z\s]", "", text)
     return text.lower()
 
-# --- Single job prediction ---
 st.subheader("Predict a Single Job")
 job_desc = st.text_area("Enter the job description here:")
 
@@ -42,7 +37,6 @@ if st.button("Check Job"):
     else:
         st.warning("Please enter a job description!")
 
-# --- Bulk CSV upload ---
 st.subheader("Bulk Prediction via CSV Upload")
 uploaded_file = st.file_uploader("Upload CSV with a 'description' column", type=["csv"])
 if uploaded_file:
@@ -57,16 +51,13 @@ if uploaded_file:
     else:
         st.error("CSV must contain a 'description' column.")
 
-# --- Dataset insights ---
 st.subheader("Dataset Insights")
 
-# Distribution of Real vs Fake
 fig1, ax1 = plt.subplots(figsize=(6,4))
 sns.countplot(x=y, palette="viridis", ax=ax1)
 ax1.set_xticklabels(["Real", "Fake"])
 st.pyplot(fig1)
 
-# Confusion matrix
 real = df[df['fraudulent'] == 0]
 fake = df[df['fraudulent'] == 1]
 real_downsampled = real.sample(len(fake), random_state=42)
