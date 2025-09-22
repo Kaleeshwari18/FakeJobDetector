@@ -6,23 +6,19 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
 
-# Load dataset
 df = pd.read_csv("data/fake_job_postings.csv")
 
-# Balance dataset
 real = df[df['fraudulent'] == 0]
 fake = df[df['fraudulent'] == 1]
 real_downsampled = real.sample(len(fake), random_state=42)
 df_balanced = pd.concat([real_downsampled, fake]).reset_index(drop=True)
 
-# Combine text fields
 df_balanced['text'] = (
     df_balanced['title'].fillna('') + ' ' +
     df_balanced['description'].fillna('') + ' ' +
     df_balanced['requirements'].fillna('')
 )
 
-# Clean text
 def clean_text(text):
     text = re.sub(r"http\S+", "", text)
     text = re.sub(r"[^a-zA-Z\s]", "", text)
@@ -31,27 +27,21 @@ def clean_text(text):
 
 df_balanced['text_clean'] = df_balanced['text'].apply(clean_text)
 
-# Features & target
 X = df_balanced['text_clean']
 y = df_balanced['fraudulent']
 
-# TF-IDF vectorization
 vectorizer = TfidfVectorizer(stop_words='english', max_features=5000)
 X_vec = vectorizer.fit_transform(X)
 
-# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(X_vec, y, test_size=0.2, random_state=42)
 
-# Train Random Forest
 model = RandomForestClassifier(n_estimators=200, random_state=42)
 model.fit(X_train, y_train)
 
-# Evaluate
 y_pred = model.predict(X_test)
 print("✅ Accuracy:", accuracy_score(y_test, y_pred))
 print(classification_report(y_test, y_pred))
 
-# Save model & vectorizer
 joblib.dump(model, "models/fake_job_model.pkl")
 joblib.dump(vectorizer, "models/vectorizer.pkl")
 print("✅ Model and vectorizer saved successfully!")
